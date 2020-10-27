@@ -57,7 +57,7 @@ extend(RolePlay.prototype, {
 				return next(createError(403, 'No authenticated user found'));
 			}
 			
-			var user    = self.user(req.user);
+			var user    = self._createUserObject(req.user);
 			var allowed = actionNames.map(function( actionName ) {
 				return user.can(actionName, req);
 			});
@@ -99,10 +99,6 @@ extend(RolePlay.prototype, {
 			return this.roles[roleName] = role;
 		}
 	},
-	
-	user: function( user ) {
-		return new this.constructor.Play(this, user);
-	},
 
 	gatherAction: function( actionName, roleName ) {
 		var result = undefined;
@@ -143,6 +139,11 @@ extend(RolePlay.prototype, {
 			locals.can.actions = actions;
 		}
 	},
+
+	_createUserObject: function( user ) {
+		return new this.constructor.Play(this, user);
+	},
+
 	// Used by `can` to expand action names like `entity:*` to a list of fully
 	// qualified action names (e.g.: `entity:edit`, `entity:create` etc);
 	_getCanonicalActionNames: function( actionNames ) {
