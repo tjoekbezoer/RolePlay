@@ -17,7 +17,7 @@ var RolePlay = module.exports = function RolePlay( options ) {
 		defaultError    : 'Not authorized',
 		defaultRoleName : 'default'
 	});
-	
+
 	this.roles       = {};
 	this.defaultRole = new this.constructor.Role(this, options.defaultRoleName);
 	this.roles[this.defaultRole.name] = this.defaultRole;
@@ -29,7 +29,7 @@ extend(RolePlay.prototype, {
 	options     : undefined,
 	defaultRole : undefined,
 	roles       : undefined,
-	
+
 	// Express middleware
 	// ------------------
 	// Checks permission for the current user, and produces a 403 error when
@@ -37,10 +37,10 @@ extend(RolePlay.prototype, {
 	// the first action is required to be allowed for the request to succeed.
 	// All consecutive actions are optional. Passing `true` as the last argument
 	// makes all actions optional.
-	// 
+	//
 	// `req.user` must be set before this middleware runs. For permissions that
 	// require a resource, `req.resource` must be set as well.
-	// 
+	//
 	// Adds `res.locals.can` as `function(actionName)` to check for the passed
 	// permissions in template views.
 	can: function( /* actionName [, actionName...] [, allOptional] */ ) {
@@ -51,7 +51,7 @@ extend(RolePlay.prototype, {
 		                      actionNames_raw.pop() :
 		                      false;
 		var actionNames     = this._getCanonicalActionNames(actionNames_raw);
-		
+
 		return function( req, res, next ) {
 			if( !req.user ) {
 				return next(createError(403, 'No authenticated user found'));
@@ -61,12 +61,12 @@ extend(RolePlay.prototype, {
 			var allowed = actionNames.map(function( actionName ) {
 				return user.can(actionName, req);
 			});
-			
+
 			// Add `can(actionName)` function to locals, so the passed
 			// permission can be checked in the template as well.
 			var actions = zipObject(actionNames, allowed);
 			self._addHelperFunction(req, res, actions);
-			
+
 			if( allOptional || allowed[0] ) {
 				next();
 			} else {
@@ -77,14 +77,14 @@ extend(RolePlay.prototype, {
 			}
 		}
 	},
-	
+
 	role: function( roleName ) {
 		var role;
 		if( roleName instanceof Role ) {
 			role     = roleName;
 			roleName = role.name;
 		}
-		
+
 		if( this.roles[roleName] ) {
 			if( role && this.roles[roleName] !== role ) {
 				throw new Error('Duplicate role: '+roleName);
@@ -103,7 +103,7 @@ extend(RolePlay.prototype, {
 	user: function( user ) {
 		return new this.constructor.Play(this, user);
 	},
-	
+
 	gatherAction: function( actionName, roleName ) {
 		var result = undefined;
 		var role   = this.roles[roleName];
@@ -113,7 +113,7 @@ extend(RolePlay.prototype, {
 		} else if( !this.defaultRole.action(actionName) ) {
 			throw new Error('Action not defined on default role: '+actionName);
 		}
-		
+
 		while( role ) {
 			if( action = role.action(actionName) ) {
 				result = defaults(result || {}, action);
@@ -122,7 +122,7 @@ extend(RolePlay.prototype, {
 		}
 		return result;
 	},
-	
+
 	// Used by `can` to assign a helper function to `req.can` and `res.locals.can`.
 	_addHelperFunction: function( req, res, actions ) {
 		var locals = res.locals;
@@ -168,7 +168,7 @@ extend(RolePlay.prototype, {
 				canonical.add(actionName);
 			}
 		}
-		
+
 		return Array.from(canonical);
 	}
 });
@@ -183,19 +183,19 @@ extend(Role.prototype, {
 	name     : undefined,
 	actions  : undefined,
 	inherits : undefined,
-	
+
 	role: function( roleName ) {
 		var role = new this.constructor(this.mgr, roleName);
 		role.inherits = this;
 		return this.mgr.role(role);
 	},
-	
+
 	// def = boolean || allowFunction || {
 	// 	allow     : boolean || function(user[, resource], actionName) { return boolean },
 	// 	[resource : name || [name, ...] || function( mixed ) { return resource }],
 	// 	[message  : string]
 	// }
-	// 
+	//
 	// If `resource` is an array of strings, the `allow` function will receive
 	// a resource object where the string values from the array are properties
 	// on the object with the corresponding resource as value.
@@ -223,7 +223,7 @@ extend(Role.prototype, {
 				return action || this.actions['*'];
 			}
 		}
-		
+
 		var resource, allow, message;
 		if( def instanceof Object && def.constructor === Object ) {
 			resource = def.resource;
@@ -232,7 +232,7 @@ extend(Role.prototype, {
 		} else {
 			allow    = def;
 		}
-		
+
 		if( this.actions[actionName] ) {
 			throw new Error('Action already defined: '+actionName);
 		}
@@ -242,7 +242,7 @@ extend(Role.prototype, {
 		if( resource && typeof resource !== 'function' ) {
 			resource = this._createResourceFunction(resource);
 		}
-		
+
 		action = this.actions[actionName] = {
 			name           : actionName,
 			resource       : resource,
@@ -251,7 +251,7 @@ extend(Role.prototype, {
 		};
 		return this;
 	},
-	
+
 	_createAllowFunction: function( allowValue ) {
 		return function() { return !!allowValue };
 	},
@@ -266,7 +266,7 @@ extend(Role.prototype, {
 			}
 			return resource;
 		}
-		
+
 		return function( input /* [, input...] */ ) {
 			var len = arguments.length;
 			if( len > 1 ) {
@@ -300,13 +300,13 @@ extend(Play.prototype, {
 	user     : undefined,
 	role     : undefined,
 	resource : undefined,
-	
+
 	can: function( actionName /* [, resource...] */ ) {
 		var action = this.get(actionName);
 		if( !action ) {
 			throw new Error('Action not found: '+actionName);
 		}
-		
+
 		if( action.resource ) {
 			var resourceArgs = Array.prototype.slice.call(arguments, 1);
 			var resources    = action.resource.apply(action, resourceArgs);
