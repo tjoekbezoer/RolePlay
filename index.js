@@ -53,10 +53,6 @@ extend(RolePlay.prototype, {
 		var actionNames     = this._getCanonicalActionNames(actionNames_raw);
 
 		return function( req, res, next ) {
-			if( !req.user ) {
-				return next(createError(403, 'No authenticated user found'));
-			}
-			
 			var user    = self._createUserObject(req.user);
 			var allowed = actionNames.map(function( actionName ) {
 				return user.can(actionName, req);
@@ -71,9 +67,9 @@ extend(RolePlay.prototype, {
 				next();
 			} else {
 				var action       = user.get(actionNames[0]);
-				var errorMessage = result(action, 'message') ||
-				                   self.options.defaultError;
-				next(createError(403, errorMessage));
+				var errorMessage = result(action, 'message') || self.options.defaultError;
+				var error        = self._createError(user, errorMessage);
+				next(error);
 			}
 		}
 	},
@@ -138,6 +134,12 @@ extend(RolePlay.prototype, {
 			};
 			locals.can.actions = actions;
 		}
+	},
+
+	_createError: function( user, errorMessage ) {
+		return user.user ?
+		       createError(403, errorMessage) :
+		       createError(401, this.options.defaultError);
 	},
 
 	_createUserObject: function( user ) {
@@ -292,9 +294,9 @@ extend(Role.prototype, {
 });
 
 function Play( mgr, user ) {
-	this.mgr  = mgr;
-	this.user = user;
-	this.role = this._getUserRole(user);
+	this.mgr      = mgr;
+	this.user     = user;
+	this.roleName = this._getUserRoleName(user);
 }
 extend(Play.prototype, {
 	mgr      : undefined,
@@ -318,10 +320,10 @@ extend(Play.prototype, {
 		}
 	},
 	get: function( actionName ) {
-		return this.mgr.gatherAction(actionName, this.role);
+		return this.mgr.gatherAction(actionName, this.roleName);
 	},
-	
-	_getUserRole: function( user ) {
-		return user.role;
+
+	_getUserRoleName: function( user ) {
+		return (user && user.role) || this.mgr.options.defaultRoleName;
 	}
 });
