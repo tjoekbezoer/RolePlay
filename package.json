@@ -1,6 +1,6 @@
 {
   "name": "roleplay",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Flexible Access Control Layer for your backend with a very simple API.",
   "main": "index.js",
   "dependencies": {
