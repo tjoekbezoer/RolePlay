@@ -83,14 +83,14 @@ extend(RolePlay.prototype, {
 
 		if( this.roles[roleName] ) {
 			if( role && this.roles[roleName] !== role ) {
-				throw new Error('Duplicate role: '+roleName);
+				throw createError(500, 'Duplicate role: '+roleName);
 			}
 			return this.roles[roleName];
 		} else {
 			if( !role ) {
 				role = this.defaultRole.role(roleName);
 			} else if( role.mgr != this ) {
-				throw new Error('Role already in use');
+				throw createError(500, 'Role already in use');
 			}
 			return this.roles[roleName] = role;
 		}
@@ -101,9 +101,9 @@ extend(RolePlay.prototype, {
 		var role   = this.roles[roleName];
 		var action;
 		if( !role ) {
-			throw new Error('Role not found: '+roleName);
+			throw createError(500, 'Role not found: '+roleName);
 		} else if( !this.defaultRole.action(actionName) ) {
-			throw new Error('Action not defined on default role: '+actionName);
+			throw createError(500, 'Action not defined on default role: '+actionName);
 		}
 
 		while( role ) {
@@ -124,7 +124,7 @@ extend(RolePlay.prototype, {
 			// Passing multiple action names means `OR`.
 			req.can = locals.can = function can( actionName /* [, actionName...] */ ) {
 				if( !(actionName in can.actions) ) {
-					throw new Error('RolePlay action not available for this route: '+actionName);
+					throw createError(500, 'RolePlay action not available for this route: '+actionName);
 				}
 				var len = arguments.length;
 				for( var i=0; i<len; i++ ) {
@@ -214,7 +214,7 @@ extend(Role.prototype, {
 			} else {
 				// Get action.
 				if( typeof actionName !== 'string' ) {
-					throw new Error('Incorrect action name: '+actionName);
+					throw createError(500, 'Incorrect action name: '+actionName);
 				}
 				action = this.actions[actionName];
 				if( !action ) {
@@ -237,7 +237,7 @@ extend(Role.prototype, {
 		}
 
 		if( this.actions[actionName] ) {
-			throw new Error('Action already defined: '+actionName);
+			throw createError(500, 'Action already defined: '+actionName);
 		}
 		if( typeof allow !== 'function' ) {
 			allow = this._createAllowFunction(allow);
@@ -265,7 +265,7 @@ extend(Role.prototype, {
 			               input;
 			if( resource == undefined ) {
 				resourceName = resourceName ? '\''+resourceName+'\'' : '';
-				throw Error('Action \''+this.name+'\' missing resource '+resourceName);
+				throw createError(500, 'Action \''+this.name+'\' missing resource '+resourceName);
 			}
 			return resource;
 		}
@@ -274,7 +274,7 @@ extend(Role.prototype, {
 			var len = arguments.length;
 			if( len > 1 ) {
 				if( !Array.isArray(resourceDef) || len != resourceDef.length ) {
-					throw Error('Action \''+this.name+'\' missing resource');
+					throw createError(500, 'Action \''+this.name+'\' missing resource');
 				}
 				var resources = [];
 				for( let i=0; i<len; i++ ) {
@@ -307,7 +307,7 @@ extend(Play.prototype, {
 	can: function( actionName /* [, resource...] */ ) {
 		var action = this.get(actionName);
 		if( !action ) {
-			throw new Error('Action not found: '+actionName);
+			throw createError(500, 'Action not found: '+actionName);
 		}
 
 		if( action.resource ) {
