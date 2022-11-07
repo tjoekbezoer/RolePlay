@@ -4,8 +4,8 @@
   "description": "Flexible Access Control Layer for your backend with a very simple API.",
   "main": "index.js",
   "dependencies": {
-    "http-errors": "^1.6.2",
-    "lodash": "^4.17.19"
+    "http-errors": "^2.0.0",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {},
   "scripts": {
